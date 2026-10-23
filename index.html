@@ -193,7 +193,7 @@ Mb.prototype.add=function(geo,mat,x,y,z,sx,sy,sz,rx,ry,rz){const m=new THREE.Mat
 Mb.prototype.flush=function(par){for(const[mat,gs]of this.l){const o=new THREE.Mesh(gs.length>1?mergeG(gs):gs[0],mat);o.castShadow=true;par.add(o)}this.l.clear()};
 function mkRig(){
 const mt=(c,r,m)=>new THREE.MeshStandardMaterial({color:c,roughness:r==null?.85:r,metalness:m||0});
-const M={jk:mt(0x2e75c4),pn:mt(0x3a3f33),sk:mt(0xd9a66f,.62),hl:mt(0x2b2b2b,.5,.2),vs:mt(0x2b2b2b,.9),pc:mt(0x222222,.9),bp:mt(0x242424,.95),gl:mt(0x151515,.9),bt:mt(0x14110e,.75),gs:mt(0x101010,.8),lens:mt(0x4a7a99,.15,.9),wh:mt(0xf2f2f2,.4),ey:mt(0x120d08,.3),hr:mt(0x17120e,.95),ml:mt(0x7a3b36,.6),mt:mt(0x1a1a1a,.4,.7)};
+const M={jk:mt(0x35452a),pn:mt(0x30382a),sk:mt(0xd9a66f,.62),hl:mt(0x35452a,.5,.2),vs:mt(0x4a5139,.9),pc:mt(0x292d25,.9),bp:mt(0x414832,.95),gl:mt(0x151515,.9),bt:mt(0x14110e,.75),gs:mt(0x101010,.8),lens:mt(0x4a7a99,.15,.9),wh:mt(0xf2f2f2,.4),ey:mt(0x120d08,.3),hr:mt(0x17120e,.95),ml:mt(0x7a3b36,.6),mt:mt(0x1a1a1a,.4,.7)};
 M.jk.map=CAMO;M.pn.map=CAMO;M.gs.side=THREE.DoubleSide;
 const r={M,g:new THREE.Group()},g=r.g;
 const cy=(a,b,h,s,o)=>new THREE.CylinderGeometry(a,b,h,s||14,1,!!o),sp=(q,w,h)=>new THREE.SphereGeometry(q,w||14,h||10),bx=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
@@ -206,6 +206,9 @@ new Mb().add(cy(.17,.16,.2,18),M.pn,0,.99,0,1,1,.72)
 .add(bx(.31,.34,.07),M.vs,0,1.27,-.125).add(bx(.3,.32,.06),M.vs,0,1.27,.125)
 .add(cy(.205,.19,.18,18),M.vs,0,1.13,0,1,1,.74)
 .add(bx(.07,.025,.27),M.vs,-.1,1.5,0).add(bx(.07,.025,.27),M.vs,.1,1.5,0)
+.add(bx(.115,.105,.12),M.pc,-.235,1.445,-.01,1,1,1,0,0,-.12).add(bx(.115,.105,.12),M.pc,.235,1.445,-.01,1,1,1,0,0,.12)
+.add(bx(.075,.09,.045),M.bp,-.105,1.27,-.17).add(bx(.075,.09,.045),M.bp,0,1.27,-.17).add(bx(.075,.09,.045),M.bp,.105,1.27,-.17)
+.add(bx(.13,.08,.08),M.pc,-.13,1.18,-.18).add(bx(.13,.08,.08),M.pc,.13,1.18,-.18)
 .add(bx(.075,.09,.05),M.pc,-.1,1.12,-.175).add(bx(.075,.09,.05),M.pc,0,1.12,-.175).add(bx(.075,.09,.05),M.pc,.1,1.12,-.175)
 .add(bx(.06,.1,.045),M.pc,-.07,1.34,-.165).add(bx(.06,.1,.045),M.pc,.07,1.34,-.165)
 .add(bx(.04,.1,.035),M.gl,-.15,1.5,-.07).add(cy(.004,.004,.14,5),M.gl,-.15,1.62,-.07)
