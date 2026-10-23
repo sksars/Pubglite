@@ -105,6 +105,7 @@ s.addEventListener('click',()=>{if(window.__homeReady)fin()});
 })()</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>window.THREE||document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>')</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 addEventListener('error',e=>{const d=document.getElementById('err');d.style.display='block';d.textContent='Error: '+e.message+' (line '+e.lineno+')';const sp=document.getElementById('splash');sp&&sp.remove()});
 if(typeof THREE==='undefined'){const m=document.getElementById('msg');m.innerHTML='<h1>three.js load nahi hua</h1><p>Internet on karke page reload karo.</p>';m.onclick=()=>location.reload();document.getElementById('splash')&&document.getElementById('splash').remove();throw new Error('three.js missing')}
@@ -267,7 +268,7 @@ function blocked(x,z,y){for(const b of BX)if(x>b.x0-.4&&x<b.x1+.4&&z>b.z0-.4&&z<
 function gh(x,z,y){let g=0;for(const b of BX)if(x>b.x0-.3&&x<b.x1+.3&&z>b.z0-.3&&z<b.z1+.3&&y>=b.h-.45)g=Math.max(g,b.h);return g}
 function stp(a,dx,dz){a.bx=0;if(!blocked(a.pos.x+dx,a.pos.z,a.pos.y))a.pos.x+=dx;else a.bx=1;if(!blocked(a.pos.x,a.pos.z+dz,a.pos.y))a.pos.z+=dz;else a.bx=1}
 function phys(a,dt){a.vy-=22*dt;a.pos.y+=a.vy*dt;const g=gh(a.pos.x,a.pos.z,a.pos.y);if(a.pos.y<=g){a.pos.y=g;a.vy=0;a.gr=true}else a.gr=false}
-P=mkActor(0,true,0);for(let i=1;i<4;i++)mkActor(0,false,i);for(let i=0;i<4;i++)mkActor(1,false,i);A.forEach(spawn);
+P=mkActor(0,true,0);if(SOLDIER_GLTF)installSoldier(P,SOLDIER_GLTF);for(let i=1;i<4;i++mkActor(0,false,i);for(let i=0;i<4;i++)mkActor(1,false,i);A.forEach(spawn);
 const LT={med:[0x33dd55,'MED KIT +50 HP'],ammo:[0xffcc33,'AMMO +1 MAG'],gren:[0x88bb55,'GRENADE +2']},LOOT=[];
 function dropLoot(x,z,type,perm){const y=gh(x,z,99),c=LT[type][0];const m=new THREE.Mesh(new THREE.BoxGeometry(.5,.35,.5),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:.7}));
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,4,6),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.35,depthWrite:false}));b.position.y=2;m.add(b);m.castShadow=true;m.position.set(x,y+.6,z);S.add(m);LOOT.push({m,type,x,z,y,perm,rt:0,life:45})}
@@ -326,6 +327,30 @@ else{if(a.wp.distanceTo(a.pos)<3||a.t%10<dt||a.bx){a.wp.set(rnd(-40,40),0,(a.tea
 a.cd-=dt;if(a.rel>0){a.rel-=dt;if(a.rel<=0){const n=Math.min(w.mag-a.ammo[a.wi],99);a.ammo[a.wi]+=n}}
 const l=Math.hypot(mx,mz);a.moving=l>0;if(l>0)stp(a,mx/l*sp*dt,mz/l*sp*dt);phys(a,dt);a.walk+=a.moving?dt*sp*1.6:0;a.l1.rotation.x=Math.sin(a.walk)*.7*(a.moving?1:0);a.l2.rotation.x=-a.l1.rotation.x;legsK(a);a.mesh.position.copy(a.pos);a.mesh.rotation.y=a.yaw}
 
+/* ---------- animated GLB soldier ---------- */
+let SOLDIER_GLTF=null;
+const SOLDIER_URL='https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb';
+function installSoldier(a,gltf){
+ if(!a||a.glbModel)return;
+ const model=gltf.scene.clone(true),box=new THREE.Box3().setFromObject(gltf.scene),size=box.getSize(new THREE.Vector3());
+ model.scale.setScalar(1.78/Math.max(size.y,.001));
+ const b=new THREE.Box3().setFromObject(model);model.position.y-=b.min.y;
+ a.mesh.add(model);a.glbModel=model;
+ if(a.rig&&a.rig.g)a.rig.g.visible=false;
+ if(gltf.animations&&gltf.animations.length){
+  a.glbMixer=new THREE.AnimationMixer(model);a.glbActions={};
+  for(const clip of gltf.animations){if(clip.name!=='TPose')a.glbActions[clip.name]=a.glbMixer.clipAction(clip)}
+  a.glbCurrent=a.glbActions.Idle||Object.values(a.glbActions)[0];if(a.glbCurrent)a.glbCurrent.play();
+ }
+}
+function setSoldierMotion(a,run){
+ if(!a.glbActions)return;
+ const n=run?'Run':a.moving?'Walk':'Idle',next=a.glbActions[n]||a.glbActions.Idle;
+ if(next&&next!==a.glbCurrent){next.reset().play();if(a.glbCurrent)a.glbCurrent.crossFadeTo(next,.18,false);a.glbCurrent=next}
+}
+function loadSoldierGLB(){if(!THREE.GLTFLoader)return;new THREE.GLTFLoader().load(SOLDIER_URL,g=>{SOLDIER_GLTF=g;if(P)installSoldier(P,g)},undefined,e=>console.warn('Soldier GLB failed to load',e))}
+loadSoldierGLB();
+
 /* ---------- player ---------- */
 let stepT=0;const camRC=new THREE.Raycaster();
 function place3P(a,eh){const cp=Math.cos(a.pitch),ux=-Math.sin(a.yaw)*cp,uy=Math.sin(a.pitch),uz=-Math.cos(a.yaw)*cp,sd=.7*ST.side*(ads?.6:1),dist=ST.tpd*(ads?.55:1);
@@ -340,7 +365,7 @@ if((key[ST.kb.jump]||tj.j)&&a.gr)a.vy=7.5;phys(a,dt);a.cd-=dt;
 if(a.rel>0){a.rel-=dt;if(a.rel<=0){const w=WP[a.wi],n=Math.min(w.mag-a.ammo[a.wi],a.res[a.wi]);a.ammo[a.wi]+=n;a.res[a.wi]-=n}}
 const w=WP[a.wi];if(md&&pl){if(w.auto||!a.fl){fire(a);a.fl=1}}else a.fl=0;
 const bob=a.moving&&a.gr?Math.sin(performance.now()/(run?90:130))*.03:0,eh=cr?1.1:1.65;
-a.mesh.position.copy(a.pos);a.mesh.rotation.y=a.yaw;a.mesh.scale.y=cr?.8:1;a.walk+=a.moving?dt*sp*1.6:0;a.l1.rotation.x=Math.sin(a.walk)*.7*(a.moving?1:0);a.l2.rotation.x=-a.l1.rotation.x;legsK(a);a.gm.rotation.x=a.pitch;
+a.mesh.position.copy(a.pos);a.mesh.rotation.y=a.yaw;a.mesh.scale.y=cr?.8:1;if(a.glbMixer){a.glbMixer.update(dt);setSoldierMotion(a,run)}a.walk+=a.moving?dt*sp*1.6:0;a.l1.rotation.x=Math.sin(a.walk)*.7*(a.moving?1:0);a.l2.rotation.x=-a.l1.rotation.x;legsK(a);a.gm.rotation.x=a.pitch;
 if(tpv)place3P(a,eh+bob);else{a.mesh.visible=false;C.position.set(a.pos.x+(Math.random()-.5)*shake*.3,a.pos.y+eh+bob+(Math.random()-.5)*shake*.3,a.pos.z);C.rotation.set(a.pitch,a.yaw,0)}
 const tf=ads?(tpv?Math.max(w.fov,40):w.fov):ST.fov;C.fov+=(tf-C.fov)*Math.min(1,dt*14);C.updateProjectionMatrix();$('scope').style.display=!tpv&&ads&&a.wi==2&&C.fov<30?'block':'none';
 const vm=VM[a.wi];vm.visible=!tpv&&!(ads&&a.wi==2&&C.fov<30);a.kick=Math.max(0,a.kick-dt*8);vm.position.x+=((ads?0:.22)-vm.position.x)*Math.min(1,dt*14);vm.position.y+=((ads?-.15:-.22)+bob*.6-vm.position.y)*Math.min(1,dt*14);vm.position.z=-.55+a.kick*.07;vm.rotation.x=a.kick*.06+(a.rel>0?-.5:0);vm.rotation.z=a.rel>0?.4:0}
