@@ -293,7 +293,7 @@ function blocked(x,z,y){for(const b of BX)if(x>b.x0-.4&&x<b.x1+.4&&z>b.z0-.4&&z<
 function gh(x,z,y){let g=0;for(const b of BX)if(x>b.x0-.3&&x<b.x1+.3&&z>b.z0-.3&&z<b.z1+.3&&y>=b.h-.45)g=Math.max(g,b.h);return g}
 function stp(a,dx,dz){a.bx=0;if(!blocked(a.pos.x+dx,a.pos.z,a.pos.y))a.pos.x+=dx;else a.bx=1;if(!blocked(a.pos.x,a.pos.z+dz,a.pos.y))a.pos.z+=dz;else a.bx=1}
 function phys(a,dt){a.vy-=22*dt;a.pos.y+=a.vy*dt;const g=gh(a.pos.x,a.pos.z,a.pos.y);if(a.pos.y<=g){a.pos.y=g;a.vy=0;a.gr=true}else a.gr=false}
-P=mkActor(0,true,0);if(SOLDIER_GLTF)installSoldier(P,SOLDIER_GLTF);for(let i=1;i<4;i++mkActor(0,false,i);for(let i=0;i<4;i++)mkActor(1,false,i);A.forEach(spawn);
+P=mkActor(0,true,0);if(SOLDIER_GLTF)installSoldier(P,SOLDIER_GLTF);for(let i=1;i<4;i++)mkActor(0,false,i);for(let i=0;i<4;i++)mkActor(1,false,i);A.forEach(spawn);
 const LT={med:[0x33dd55,'MED KIT +50 HP'],ammo:[0xffcc33,'AMMO +1 MAG'],gren:[0x88bb55,'GRENADE +2']},LOOT=[];
 function dropLoot(x,z,type,perm){const y=gh(x,z,99),c=LT[type][0];const m=new THREE.Mesh(new THREE.BoxGeometry(.5,.35,.5),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:.7}));
 const b=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,4,6),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.35,depthWrite:false}));b.position.y=2;m.add(b);m.castShadow=true;m.position.set(x,y+.6,z);S.add(m);LOOT.push({m,type,x,z,y,perm,rt:0,life:45})}
